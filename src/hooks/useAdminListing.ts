@@ -33,11 +33,36 @@ export function useAdminListing({
     setDraftFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const apply = useCallback(() => {
+  const applySearch = useCallback(() => {
     setAppliedSearch(draftSearch.trim());
+    setPage(1);
+  }, [draftSearch]);
+
+  const applyFilters = useCallback(() => {
     setAppliedFilters({ ...draftFilters });
     setPage(1);
-  }, [draftSearch, draftFilters]);
+    setFiltersOpen(false);
+  }, [draftFilters]);
+
+  const resetFilters = useCallback(() => {
+    setDraftFilters({});
+    setAppliedFilters({});
+    setPage(1);
+  }, []);
+
+  const openFilters = useCallback(() => {
+    setDraftFilters({ ...appliedFilters });
+    setFiltersOpen(true);
+  }, [appliedFilters]);
+
+  const closeFilters = useCallback(() => {
+    setDraftFilters({ ...appliedFilters });
+    setFiltersOpen(false);
+  }, [appliedFilters]);
+
+  const apply = useCallback(() => {
+    applySearch();
+  }, [applySearch]);
 
   const reset = useCallback(() => {
     setDraftSearch("");
@@ -70,6 +95,11 @@ export function useAdminListing({
     filtersOpen,
     setFiltersOpen,
     activeFilterCount,
+    applySearch,
+    applyFilters,
+    resetFilters,
+    openFilters,
+    closeFilters,
     apply,
     reset,
   };
@@ -94,6 +124,10 @@ export function matchesFilters<T extends object>(
 ) {
   return Object.entries(filters).every(([key, value]) => {
     if (!value) return true;
-    return String(row[key as keyof T] ?? "") === value;
+    const rowValue = row[key as keyof T];
+    if (typeof rowValue === "boolean") {
+      return String(rowValue) === value;
+    }
+    return String(rowValue ?? "") === value;
   });
 }

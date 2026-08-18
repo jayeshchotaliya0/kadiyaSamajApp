@@ -32,8 +32,8 @@ export function SelectField({
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
+        {options.map((option, index) => (
+          <option key={`${option}-${index}`} value={option}>
             {option}
           </option>
         ))}

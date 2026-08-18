@@ -12,10 +12,9 @@ import {
 import { AdminListingControls } from "@/components/admin/AdminListingControls";
 import { TableActions } from "@/components/admin/TableActions";
 import { DeleteConfirmModal } from "@/components/admin/DeleteConfirmModal";
-import { Pagination } from "@/components/common/Pagination";
 import { Modal } from "@/components/common/Modal";
 import { FormField } from "@/components/forms/FormField";
-import { CITIES, STATES } from "@/data/locations";
+import { STATES, UNIQUE_CITY_NAMES } from "@/data/locations";
 import { paginate } from "@/utils/filters";
 import {
   matchesFilters,
@@ -163,11 +162,11 @@ export function OccupationProfilesPage({
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">{title}</h1>
-          <p className="mt-1 text-ink-soft">
+          <h1 className="font-display text-2xl font-bold">{title}</h1>
+          <p className="mt-0.5 text-sm text-ink-soft">
             Reusable occupation profile UI with mock records and modal forms.
           </p>
         </div>
@@ -188,19 +187,17 @@ export function OccupationProfilesPage({
       <AdminListingControls
         draftSearch={listing.draftSearch}
         onDraftSearchChange={listing.setDraftSearch}
-        onSearch={listing.apply}
-        onReset={listing.reset}
-        sort={listing.sort}
-        onSort={listing.setSort}
-        pageSize={listing.pageSize}
-        onPageSize={listing.setPageSize}
+        onSearch={listing.applySearch}
         filtersOpen={listing.filtersOpen}
-        onToggleFilters={() => listing.setFiltersOpen((open) => !open)}
+        onOpenFilters={listing.openFilters}
+        onCloseFilters={listing.closeFilters}
+        onApplyFilters={listing.applyFilters}
+        onResetFilters={listing.resetFilters}
         activeFilterCount={listing.activeFilterCount}
         draftFilters={listing.draftFilters}
         onDraftFilterChange={listing.setDraftFilter}
         filterOptions={[
-          { key: "city", label: "City", options: CITIES.map((c) => c.name) },
+          { key: "city", label: "City", options: UNIQUE_CITY_NAMES },
           { key: "state", label: "State", options: [...STATES] },
           {
             key: "status",
@@ -210,11 +207,17 @@ export function OccupationProfilesPage({
         ]}
       />
 
-      <DataTable columns={columns} rows={paged.items} />
-      <Pagination
-        page={listing.page}
-        totalPages={paged.totalPages}
-        onChange={listing.setPage}
+      <DataTable
+        columns={columns}
+        rows={paged.items}
+        pagination={{
+          page: listing.page,
+          pageSize: listing.pageSize,
+          totalItems: filtered.length,
+          totalPages: paged.totalPages,
+          onChange: listing.setPage,
+          onPageSize: listing.setPageSize,
+        }}
       />
 
       <Modal

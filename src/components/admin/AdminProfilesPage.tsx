@@ -11,9 +11,8 @@ import {
 import { AdminListingControls } from "@/components/admin/AdminListingControls";
 import { TableActions } from "@/components/admin/TableActions";
 import { DeleteConfirmModal } from "@/components/admin/DeleteConfirmModal";
-import { Pagination } from "@/components/common/Pagination";
 import { Modal } from "@/components/common/Modal";
-import { CITIES, STATES, SURNAMES } from "@/data/locations";
+import { STATES, SURNAMES, UNIQUE_CITY_NAMES } from "@/data/locations";
 import { EDUCATION_LEVELS, MARITAL_STATUSES } from "@/data/education";
 import { OCCUPATIONS } from "@/data/occupations";
 import { formatDate } from "@/utils/format";
@@ -119,11 +118,11 @@ export function AdminProfilesPage({
     },
   ];
 
-  return (
-    <div className="space-y-5">
+    return (
+    <div className="space-y-4">
       <div>
-        <h1 className="font-display text-3xl font-bold">{title}</h1>
-        <p className="mt-1 text-ink-soft">
+        <h1 className="font-display text-2xl font-bold">{title}</h1>
+        <p className="mt-0.5 text-sm text-ink-soft">
           Frontend-only listing with mock data, filters, and visual actions.
         </p>
       </div>
@@ -131,19 +130,18 @@ export function AdminProfilesPage({
       <AdminListingControls
         draftSearch={listing.draftSearch}
         onDraftSearchChange={listing.setDraftSearch}
-        onSearch={listing.apply}
-        onReset={listing.reset}
-        sort={listing.sort}
-        onSort={listing.setSort}
-        pageSize={listing.pageSize}
-        onPageSize={listing.setPageSize}
+        onSearch={listing.applySearch}
         filtersOpen={listing.filtersOpen}
-        onToggleFilters={() => listing.setFiltersOpen((open) => !open)}
+        onOpenFilters={listing.openFilters}
+        onCloseFilters={listing.closeFilters}
+        onApplyFilters={listing.applyFilters}
+        onResetFilters={listing.resetFilters}
         activeFilterCount={listing.activeFilterCount}
         draftFilters={listing.draftFilters}
         onDraftFilterChange={listing.setDraftFilter}
+        searchPlaceholder="Search by name, city, surname, education, or occupation..."
         filterOptions={[
-          { key: "city", label: "City", options: CITIES.map((c) => c.name) },
+          { key: "city", label: "City", options: UNIQUE_CITY_NAMES },
           { key: "state", label: "State", options: [...STATES] },
           { key: "surname", label: "Surname", options: [...SURNAMES] },
           { key: "education", label: "Education", options: [...EDUCATION_LEVELS] },
@@ -162,11 +160,17 @@ export function AdminProfilesPage({
         ]}
       />
 
-      <DataTable columns={columns} rows={paged.items} />
-      <Pagination
-        page={listing.page}
-        totalPages={paged.totalPages}
-        onChange={listing.setPage}
+      <DataTable
+        columns={columns}
+        rows={paged.items}
+        pagination={{
+          page: listing.page,
+          pageSize: listing.pageSize,
+          totalItems: filtered.length,
+          totalPages: paged.totalPages,
+          onChange: listing.setPage,
+          onPageSize: listing.setPageSize,
+        }}
       />
 
       <Modal

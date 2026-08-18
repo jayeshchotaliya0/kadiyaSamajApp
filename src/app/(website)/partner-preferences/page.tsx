@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { SelectField } from "@/components/forms/SelectField";
 import { ProfileGrid } from "@/components/profile/ProfileGrid";
-import { CITIES, STATES, SURNAMES } from "@/data/locations";
+import { STATES, SURNAMES, UNIQUE_CITY_NAMES } from "@/data/locations";
 import { EDUCATION_LEVELS, MARITAL_STATUSES } from "@/data/education";
 import { OCCUPATION_HINTS, OCCUPATIONS } from "@/data/occupations";
 import { profiles } from "@/data/profiles";
@@ -51,7 +51,7 @@ export default function PartnerPreferencesPage() {
       <div className="surface-card mb-8 grid gap-4 p-5 md:grid-cols-2 lg:grid-cols-4">
         <SelectField label="Age From" id="ageFrom" value={form.ageFrom} onChange={(v) => setForm((s) => ({ ...s, ageFrom: v }))} options={Array.from({ length: 30 }, (_, i) => String(i + 18))} />
         <SelectField label="Age To" id="ageTo" value={form.ageTo} onChange={(v) => setForm((s) => ({ ...s, ageTo: v }))} options={Array.from({ length: 30 }, (_, i) => String(i + 18))} />
-        <SelectField label="City" id="city" value={form.city} onChange={(v) => setForm((s) => ({ ...s, city: v }))} options={CITIES.map((c) => c.name)} />
+        <SelectField label="City" id="city" value={form.city} onChange={(v) => setForm((s) => ({ ...s, city: v }))} options={UNIQUE_CITY_NAMES} />
         <SelectField label="State" id="state" value={form.state} onChange={(v) => setForm((s) => ({ ...s, state: v }))} options={[...STATES]} />
         <SelectField label="Education" id="education" value={form.education} onChange={(v) => setForm((s) => ({ ...s, education: v }))} options={[...EDUCATION_LEVELS]} />
         <SelectField label="Occupation" id="occupation" value={form.occupation} onChange={(v) => setForm((s) => ({ ...s, occupation: v }))} options={OCCUPATIONS} />

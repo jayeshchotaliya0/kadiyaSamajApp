@@ -81,7 +81,13 @@ function ProfilesContent() {
         </div>
         <div className="space-y-6">
           <ProfileGrid profiles={paged.items} />
-          <Pagination page={page} totalPages={paged.totalPages} onChange={setPage} />
+          <Pagination
+            page={page}
+            totalPages={paged.totalPages}
+            totalItems={filtered.length}
+            pageSize={12}
+            onChange={setPage}
+          />
         </div>
       </div>
     </div>

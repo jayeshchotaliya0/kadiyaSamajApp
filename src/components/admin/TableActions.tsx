@@ -21,8 +21,9 @@ function ActionButton({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-xl border border-line bg-white text-ink-soft transition hover:border-secondary/30 hover:bg-bg hover:text-ink",
-        tone === "danger" && "hover:border-danger/30 hover:bg-danger/5 hover:text-danger",
+        "inline-flex h-7 w-7 items-center justify-center rounded-md border border-line bg-white text-ink-soft transition hover:border-secondary/25 hover:bg-bg-soft hover:text-secondary",
+        tone === "danger" &&
+          "hover:border-danger/25 hover:bg-danger/5 hover:text-danger",
       )}
     >
       {children}
@@ -46,20 +47,20 @@ export function TableActions({
   deleteLabel?: string;
 }) {
   return (
-    <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+    <div className="inline-flex items-center gap-1 whitespace-nowrap">
       {onView ? (
         <ActionButton label={viewLabel} onClick={onView}>
-          <Eye className="h-4 w-4" />
+          <Eye className="h-3.5 w-3.5" />
         </ActionButton>
       ) : null}
       {onEdit ? (
         <ActionButton label={editLabel} onClick={onEdit}>
-          <Pencil className="h-4 w-4" />
+          <Pencil className="h-3.5 w-3.5" />
         </ActionButton>
       ) : null}
       {onDelete ? (
         <ActionButton label={deleteLabel} onClick={onDelete} tone="danger">
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5" />
         </ActionButton>
       ) : null}
     </div>

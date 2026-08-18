@@ -1,8 +1,8 @@
 import type { SelectOption } from "@/components/common/SearchableSelect";
 import {
-  CITIES,
   SURNAMES,
   STATES,
+  UNIQUE_CITY_NAMES,
   citiesByState,
   getCitiesForState,
 } from "@/data/locations";
@@ -39,7 +39,7 @@ export const subCommunityOptions = toSelectOptions([
   "Kumhar",
 ]);
 export const stateOptions = toSelectOptions([...STATES]);
-export const cityOptions = toSelectOptions(CITIES.map((city) => city.name));
+export const cityOptions = toSelectOptions(UNIQUE_CITY_NAMES);
 export const educationOptions = toSelectOptions([...EDUCATION_LEVELS]);
 export const degreeOptions = toSelectOptions([...DEGREES]);
 export const occupationOptions = toSelectOptions(OCCUPATIONS);

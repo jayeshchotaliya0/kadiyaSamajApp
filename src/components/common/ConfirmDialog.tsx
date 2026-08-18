@@ -28,7 +28,15 @@ export function ConfirmDialog({
 
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      <p className="text-ink-soft">{message}</p>
+      <div className="space-y-2 text-ink-soft">
+        {message.split("\n").map((line, index) =>
+          line ? (
+            <p key={index}>{line}</p>
+          ) : (
+            <div key={index} className="h-1" />
+          ),
+        )}
+      </div>
       <div className="mt-6 flex flex-wrap justify-end gap-3">
         <button type="button" className="btn-ghost" onClick={onClose}>
           Cancel

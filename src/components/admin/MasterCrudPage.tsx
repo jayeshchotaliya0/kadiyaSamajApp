@@ -7,7 +7,6 @@ import { DataTable, StatusPill, type Column } from "@/components/admin/DataTable
 import { AdminListingControls } from "@/components/admin/AdminListingControls";
 import { TableActions } from "@/components/admin/TableActions";
 import { DeleteConfirmModal } from "@/components/admin/DeleteConfirmModal";
-import { Pagination } from "@/components/common/Pagination";
 import { Modal } from "@/components/common/Modal";
 import { FormField } from "@/components/forms/FormField";
 import { formatDate } from "@/utils/format";
@@ -18,28 +17,33 @@ import {
   useAdminListing,
   type FilterOption,
 } from "@/hooks/useAdminListing";
+import { type MasterKey, useMasterData } from "@/contexts/MasterDataContext";
+import { useMasterDelete } from "@/hooks/useMasterDelete";
 
 export function MasterCrudPage({
   title,
   description,
-  initialItems,
+  masterKey,
   metaLabel = "Meta",
   filterOptions,
 }: {
   title: string;
   description: string;
-  initialItems: MasterItem[];
+  masterKey: MasterKey;
   metaLabel?: string;
   filterOptions?: FilterOption[];
 }) {
-  const [items, setItems] = useState(initialItems);
+  const { getItems, addItem, updateItem } = useMasterData();
+  const items = getItems(masterKey);
+  const { dialog, requestDelete, cancelDelete, confirmDelete, isOpen } =
+    useMasterDelete(masterKey);
+
   const [formOpen, setFormOpen] = useState(false);
   const [viewItem, setViewItem] = useState<MasterItem | null>(null);
   const [editing, setEditing] = useState<MasterItem | null>(null);
   const [name, setName] = useState("");
   const [meta, setMeta] = useState("");
   const [status, setStatus] = useState<"active" | "inactive">("active");
-  const [deleteItem, setDeleteItem] = useState<MasterItem | null>(null);
   const listing = useAdminListing();
 
   const resolvedFilters: FilterOption[] = filterOptions ?? [
@@ -87,22 +91,14 @@ export function MasterCrudPage({
   const save = () => {
     if (!name.trim()) return;
     if (editing) {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === editing.id ? { ...item, name, meta, status } : item,
-        ),
-      );
+      updateItem(masterKey, editing.id, { name, meta, status });
     } else {
-      setItems((prev) => [
-        {
-          id: Math.max(0, ...prev.map((i) => i.id)) + 1,
-          name,
-          meta,
-          status,
-          createdAt: new Date().toISOString().slice(0, 10),
-        },
-        ...prev,
-      ]);
+      addItem(masterKey, {
+        name,
+        meta,
+        status,
+        createdAt: new Date().toISOString().slice(0, 10),
+      });
     }
     setFormOpen(false);
   };
@@ -129,7 +125,7 @@ export function MasterCrudPage({
         <TableActions
           onView={() => setViewItem(r)}
           onEdit={() => openEdit(r)}
-          onDelete={() => setDeleteItem(r)}
+          onDelete={() => requestDelete(r)}
           viewLabel="View Record"
           editLabel="Edit Record"
           deleteLabel="Delete Record"
@@ -139,11 +135,11 @@ export function MasterCrudPage({
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">{title}</h1>
-          <p className="mt-1 text-ink-soft">{description}</p>
+          <h1 className="font-display text-2xl font-bold">{title}</h1>
+          <p className="mt-0.5 text-sm text-ink-soft">{description}</p>
         </div>
         <button type="button" className="btn-primary" onClick={openCreate}>
           <Plus className="h-4 w-4" />
@@ -154,25 +150,30 @@ export function MasterCrudPage({
       <AdminListingControls
         draftSearch={listing.draftSearch}
         onDraftSearchChange={listing.setDraftSearch}
-        onSearch={listing.apply}
-        onReset={listing.reset}
-        sort={listing.sort}
-        onSort={listing.setSort}
-        pageSize={listing.pageSize}
-        onPageSize={listing.setPageSize}
+        onSearch={listing.applySearch}
         filtersOpen={listing.filtersOpen}
-        onToggleFilters={() => listing.setFiltersOpen((open) => !open)}
+        onOpenFilters={listing.openFilters}
+        onCloseFilters={listing.closeFilters}
+        onApplyFilters={listing.applyFilters}
+        onResetFilters={listing.resetFilters}
         activeFilterCount={listing.activeFilterCount}
         draftFilters={listing.draftFilters}
         onDraftFilterChange={listing.setDraftFilter}
+        searchPlaceholder={`Search ${title.toLowerCase()} records...`}
         filterOptions={resolvedFilters}
       />
 
-      <DataTable columns={columns} rows={paged.items} />
-      <Pagination
-        page={listing.page}
-        totalPages={paged.totalPages}
-        onChange={listing.setPage}
+      <DataTable
+        columns={columns}
+        rows={paged.items}
+        pagination={{
+          page: listing.page,
+          pageSize: listing.pageSize,
+          totalItems: filtered.length,
+          totalPages: paged.totalPages,
+          onChange: listing.setPage,
+          onPageSize: listing.setPageSize,
+        }}
       />
 
       <Modal
@@ -249,15 +250,11 @@ export function MasterCrudPage({
       </Modal>
 
       <DeleteConfirmModal
-        open={Boolean(deleteItem)}
-        onClose={() => setDeleteItem(null)}
-        onConfirm={() => {
-          if (!deleteItem) return;
-          setItems((prev) => prev.filter((item) => item.id !== deleteItem.id));
-          setDeleteItem(null);
-        }}
-        title="Delete Record?"
-        message={`Are you sure you want to delete ${deleteItem?.name ?? "this record"}?`}
+        open={isOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={dialog?.title ?? "Delete Record?"}
+        message={dialog?.message ?? "Are you sure you want to delete this record?"}
       />
     </div>
   );

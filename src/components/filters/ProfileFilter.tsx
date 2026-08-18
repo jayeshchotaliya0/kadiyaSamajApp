@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProfileFilters } from "@/types";
-import { CITIES, STATES, SURNAMES } from "@/data/locations";
+import { STATES, SURNAMES, UNIQUE_CITY_NAMES } from "@/data/locations";
 import {
   DEGREES,
   EDUCATION_LEVELS,
@@ -66,7 +66,7 @@ export function ProfileFilter({
           id="city"
           value={value.city ?? ""}
           onChange={(v) => set("city", v || undefined)}
-          options={CITIES.map((c) => c.name)}
+          options={UNIQUE_CITY_NAMES}
         />
         <SelectField
           label="State"

@@ -18,7 +18,7 @@ import {
   matchesSearch,
   useAdminListing,
 } from "@/hooks/useAdminListing";
-import { CITIES } from "@/data/locations";
+import { UNIQUE_CITY_NAMES } from "@/data/locations";
 
 export default function AdminSuccessStoriesPage() {
   const [stories, setStories] = useState(initial);
@@ -63,10 +63,10 @@ export default function AdminSuccessStoriesPage() {
   const paged = paginate(filtered, listing.page, listing.pageSize);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">Success Stories</h1>
+          <h1 className="font-display text-2xl font-bold">Success Stories</h1>
           <p className="mt-1 text-ink-soft">
             Manage featured couple stories for the public website.
           </p>
@@ -80,19 +80,17 @@ export default function AdminSuccessStoriesPage() {
       <AdminListingControls
         draftSearch={listing.draftSearch}
         onDraftSearchChange={listing.setDraftSearch}
-        onSearch={listing.apply}
-        onReset={listing.reset}
-        sort={listing.sort}
-        onSort={listing.setSort}
-        pageSize={listing.pageSize}
-        onPageSize={listing.setPageSize}
+        onSearch={listing.applySearch}
         filtersOpen={listing.filtersOpen}
-        onToggleFilters={() => listing.setFiltersOpen((open) => !open)}
+        onOpenFilters={listing.openFilters}
+        onCloseFilters={listing.closeFilters}
+        onApplyFilters={listing.applyFilters}
+        onResetFilters={listing.resetFilters}
         activeFilterCount={listing.activeFilterCount}
         draftFilters={listing.draftFilters}
         onDraftFilterChange={listing.setDraftFilter}
         filterOptions={[
-          { key: "city", label: "City", options: CITIES.map((c) => c.name) },
+          { key: "city", label: "City", options: UNIQUE_CITY_NAMES },
         ]}
       />
 
@@ -143,7 +141,10 @@ export default function AdminSuccessStoriesPage() {
       <Pagination
         page={listing.page}
         totalPages={paged.totalPages}
+        totalItems={filtered.length}
+        pageSize={listing.pageSize}
         onChange={listing.setPage}
+        onPageSize={listing.setPageSize}
       />
 
       <Modal

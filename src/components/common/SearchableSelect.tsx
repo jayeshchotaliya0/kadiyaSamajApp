@@ -210,7 +210,7 @@ export function SearchableSelect({
             ) : (
               filtered.map((option, index) => (
                 <li
-                  key={option.value}
+                  key={`${option.value}-${index}`}
                   id={`${listId}-option-${index}`}
                   role="option"
                   aria-selected={option.value === value}

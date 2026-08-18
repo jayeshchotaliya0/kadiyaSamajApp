@@ -92,9 +92,23 @@ export const CITIES = Object.entries(citiesByState).flatMap(([state, cities]) =>
   cities.map((name) => ({ name, state })),
 );
 
+/** Unique city names for dropdowns (avoids duplicate keys e.g. Udaipur in Rajasthan & Tripura). */
+export function getUniqueCityNames(): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const city of CITIES) {
+    if (seen.has(city.name)) continue;
+    seen.add(city.name);
+    names.push(city.name);
+  }
+  return names.sort((a, b) => a.localeCompare(b));
+}
+
+export const UNIQUE_CITY_NAMES = getUniqueCityNames();
+
 export function getCitiesForState(state: string): string[] {
   if (!state) {
-    return CITIES.map((city) => city.name);
+    return UNIQUE_CITY_NAMES;
   }
   return citiesByState[state] ?? [];
 }

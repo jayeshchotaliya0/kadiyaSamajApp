@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Briefcase, ChevronDown, MapPin, Search, UserRound } from "lucide-react";
 import type { HeroSearchParams } from "@/types";
-import { CITIES, STATES } from "@/data/locations";
+import { STATES, UNIQUE_CITY_NAMES } from "@/data/locations";
 import { OCCUPATIONS } from "@/data/occupations";
 
 const ages = Array.from({ length: 33 }, (_, i) => String(i + 18));
@@ -46,8 +46,8 @@ function HeroSelect({
           }`}
         >
           <option value="">{placeholder}</option>
-          {options.map((option) => (
-            <option key={option} value={option}>
+          {options.map((option, index) => (
+            <option key={`${option}-${index}`} value={option}>
               {option}
             </option>
           ))}
@@ -149,7 +149,7 @@ export function SearchForm() {
           label="City"
           value={form.city}
           onChange={(v) => setForm((s) => ({ ...s, city: v }))}
-          options={CITIES.map((c) => c.name)}
+          options={UNIQUE_CITY_NAMES}
           placeholder="Any city"
           icon={<MapPin className="h-4 w-4" />}
         />
