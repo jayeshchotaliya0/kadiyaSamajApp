@@ -1,91 +1,85 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { FormField } from "@/components/forms/FormField";
-import { SelectField } from "@/components/forms/SelectField";
+import { FormInput } from "@/components/common/FormInput";
+import { SearchableSelect } from "@/components/common/SearchableSelect";
 import { FileUpload, type UploadItem } from "@/components/forms/FileUpload";
-import { CITIES, GOTRAS, STATES, SURNAMES } from "@/data/locations";
+import { OCCUPATION_HINTS } from "@/data/occupations";
 import {
-  DEGREES,
-  EDUCATION_LEVELS,
-  INCOME_RANGES,
-  JOB_TYPES,
-  MARITAL_STATUSES,
-  MOTHER_TONGUES,
-} from "@/data/education";
-import { OCCUPATION_HINTS, OCCUPATIONS } from "@/data/occupations";
-
-const steps = [
-  "Basic Details",
-  "Community",
-  "Education & Career",
-  "Personal Details",
-  "Photo",
-  "Partner Preference",
-];
+  REGISTER_STEPS,
+  ageOptions,
+  cityOptions,
+  degreeOptions,
+  educationOptions,
+  familyStatusOptions,
+  familyTypeOptions,
+  genderOptions,
+  getCityOptionsForState,
+  getCitiesForState,
+  incomeOptions,
+  initialRegisterForm,
+  jobTypeOptions,
+  lifestyleOptions,
+  lookingForOptions,
+  maritalStatusOptions,
+  motherTongueOptions,
+  occupationOptions,
+  stateOptions,
+  subCommunityOptions,
+  surnameOptions,
+  type RegisterFormState,
+} from "@/data/registerData";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [images, setImages] = useState<UploadItem[]>([]);
   const [done, setDone] = useState(false);
-  const [form, setForm] = useState({
-    lookingFor: "Groom",
-    fullName: "",
-    gender: "female",
-    dob: "",
-    age: "",
-    mobile: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    community: "Kadiya Kumbhar / Prajapati",
-    subCommunity: "Prajapati",
-    surname: "",
-    gotra: "",
-    nativePlace: "",
-    city: "",
-    state: "",
-    education: "",
-    degree: "",
-    occupation: "",
-    company: "",
-    jobType: "",
-    income: "",
-    workCity: "",
-    height: "",
-    maritalStatus: "Never Married",
-    motherTongue: "Gujarati",
-    lifestyle: "Modern Traditional",
-    familyType: "Joint",
-    familyStatus: "Middle Class",
-    prefAgeFrom: "24",
-    prefAgeTo: "32",
-    prefCity: "",
-    prefState: "",
-    prefEducation: "",
-    prefOccupation: "",
-    prefMaritalStatus: "Never Married",
-    prefSurname: "",
-  });
+  const [form, setForm] = useState<RegisterFormState>(initialRegisterForm);
 
-  const set = (key: keyof typeof form, value: string) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const setField = <K extends keyof RegisterFormState>(
+    name: K,
+    value: RegisterFormState[K],
+  ) => setForm((prev) => ({ ...prev, [name]: value }));
+
+  const handleStateChange = (state: string) => {
+    setForm((prev) => {
+      const cities = getCitiesForState(state);
+      const cityStillValid = !prev.city || cities.includes(prev.city);
+      return {
+        ...prev,
+        state,
+        city: cityStillValid ? prev.city : "",
+      };
+    });
+  };
+
+  const communityCityOptions = useMemo(
+    () => getCityOptionsForState(form.state),
+    [form.state],
+  );
 
   const occupationHint = useMemo(() => {
     if (!form.prefOccupation) return "";
     return OCCUPATION_HINTS[form.prefOccupation] ?? OCCUPATION_HINTS.Other;
   }, [form.prefOccupation]);
 
-  const next = () => setStep((s) => Math.min(s + 1, steps.length - 1));
+  const next = () => setStep((s) => Math.min(s + 1, REGISTER_STEPS.length - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   if (done) {
     return (
       <div className="container-page py-16">
         <div className="surface-card mx-auto max-w-xl p-8 text-center">
-          <h1 className="font-display text-3xl font-bold">Registration complete</h1>
+          <h1 className="font-display text-3xl font-bold">
+            Registration complete
+          </h1>
           <p className="mt-3 text-ink-soft">
             Your profile UI is ready. This was a frontend-only demo submission.
           </p>
@@ -106,13 +100,13 @@ export default function RegisterPage() {
       <div className="mb-8 max-w-2xl">
         <h1 className="section-title">Create your profile</h1>
         <p className="section-subtitle">
-          Multi-step registration UI for the Kadiya Kumbhar / Prajapati community.
-          No API submission — demo only.
+          Multi-step registration UI for the Kadiya Kumbhar / Prajapati
+          community. No API submission — demo only.
         </p>
       </div>
 
       <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        {steps.map((label, index) => (
+        {REGISTER_STEPS.map((label, index) => (
           <button
             key={label}
             type="button"
@@ -133,72 +127,238 @@ export default function RegisterPage() {
       <div className="surface-card p-5 sm:p-8">
         {step === 0 && (
           <div className="grid gap-4 md:grid-cols-2">
-            <SelectField label="Looking for" id="lookingFor" value={form.lookingFor} onChange={(v) => set("lookingFor", v)} options={["Bride", "Groom"]} />
-            <FormField label="Full Name" htmlFor="fullName">
-              <input id="fullName" className="field" value={form.fullName} onChange={(e) => set("fullName", e.target.value)} />
-            </FormField>
-            <SelectField label="Gender" id="gender" value={form.gender} onChange={(v) => set("gender", v)} options={["male", "female"]} />
-            <FormField label="Date of Birth" htmlFor="dob">
-              <input id="dob" type="date" className="field" value={form.dob} onChange={(e) => set("dob", e.target.value)} />
-            </FormField>
-            <FormField label="Age" htmlFor="age">
-              <input id="age" className="field" value={form.age} onChange={(e) => set("age", e.target.value)} />
-            </FormField>
-            <FormField label="Mobile" htmlFor="mobile">
-              <input id="mobile" className="field" value={form.mobile} onChange={(e) => set("mobile", e.target.value)} />
-            </FormField>
-            <FormField label="Email" htmlFor="email">
-              <input id="email" type="email" className="field" value={form.email} onChange={(e) => set("email", e.target.value)} />
-            </FormField>
-            <FormField label="Password" htmlFor="password">
-              <input id="password" type="password" className="field" value={form.password} onChange={(e) => set("password", e.target.value)} />
-            </FormField>
-            <FormField label="Confirm Password" htmlFor="confirmPassword">
-              <input id="confirmPassword" type="password" className="field" value={form.confirmPassword} onChange={(e) => set("confirmPassword", e.target.value)} />
-            </FormField>
+            <SearchableSelect
+              label="Looking for"
+              name="lookingFor"
+              value={form.lookingFor}
+              options={lookingForOptions}
+              onChange={(v) => setField("lookingFor", v)}
+              placeholder="Select"
+            />
+            <FormInput
+              label="Full Name"
+              name="fullName"
+              value={form.fullName}
+              onChange={handleChange}
+            />
+            <SearchableSelect
+              label="Gender"
+              name="gender"
+              value={form.gender}
+              options={genderOptions}
+              onChange={(v) => setField("gender", v)}
+              placeholder="Select"
+            />
+            <FormInput
+              label="Date of Birth"
+              name="dob"
+              type="date"
+              value={form.dob}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Age"
+              name="age"
+              value={form.age}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Mobile"
+              name="mobile"
+              value={form.mobile}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Password"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              value={form.confirmPassword}
+              onChange={handleChange}
+            />
           </div>
         )}
 
         {step === 1 && (
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Community" htmlFor="community">
-              <input id="community" className="field" value={form.community} onChange={(e) => set("community", e.target.value)} />
-            </FormField>
-            <SelectField label="Sub-community" id="subCommunity" value={form.subCommunity} onChange={(v) => set("subCommunity", v)} options={["Kadiya Kumbhar", "Prajapati", "Kumhar"]} />
-            <SelectField label="Surname" id="surname" value={form.surname} onChange={(v) => set("surname", v)} options={[...SURNAMES]} />
-            <SelectField label="Gotra" id="gotra" value={form.gotra} onChange={(v) => set("gotra", v)} options={[...GOTRAS]} />
-            <FormField label="Native Place" htmlFor="nativePlace">
-              <input id="nativePlace" className="field" value={form.nativePlace} onChange={(e) => set("nativePlace", e.target.value)} />
-            </FormField>
-            <SelectField label="City" id="city" value={form.city} onChange={(v) => set("city", v)} options={CITIES.map((c) => c.name)} />
-            <SelectField label="State" id="state" value={form.state} onChange={(v) => set("state", v)} options={[...STATES]} />
+            <FormInput
+              label="Community"
+              name="community"
+              value={form.community}
+              onChange={handleChange}
+            />
+            <SearchableSelect
+              label="Sub-community"
+              name="subCommunity"
+              value={form.subCommunity}
+              options={subCommunityOptions}
+              onChange={(v) => setField("subCommunity", v)}
+              placeholder="Select"
+            />
+            <FormInput
+              label="Surname"
+              name="surname"
+              value={form.surname}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Gotra"
+              name="gotra"
+              value={form.gotra}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Native Place"
+              name="nativePlace"
+              value={form.nativePlace}
+              onChange={handleChange}
+            />
+            <SearchableSelect
+              label="City"
+              name="city"
+              value={form.city}
+              options={communityCityOptions}
+              onChange={(v) => setField("city", v)}
+              placeholder="Select city"
+              searchPlaceholder="Search city..."
+              emptyMessage="No city found"
+            />
+            <SearchableSelect
+              label="State"
+              name="state"
+              value={form.state}
+              options={stateOptions}
+              onChange={handleStateChange}
+              placeholder="Select state"
+              searchPlaceholder="Search state..."
+              emptyMessage="No state found"
+            />
           </div>
         )}
 
         {step === 2 && (
           <div className="grid gap-4 md:grid-cols-2">
-            <SelectField label="Education" id="education" value={form.education} onChange={(v) => set("education", v)} options={[...EDUCATION_LEVELS]} />
-            <SelectField label="Degree" id="degree" value={form.degree} onChange={(v) => set("degree", v)} options={[...DEGREES]} />
-            <SelectField label="Occupation" id="occupation" value={form.occupation} onChange={(v) => set("occupation", v)} options={OCCUPATIONS} />
-            <FormField label="Company" htmlFor="company">
-              <input id="company" className="field" value={form.company} onChange={(e) => set("company", e.target.value)} />
-            </FormField>
-            <SelectField label="Job Type" id="jobType" value={form.jobType} onChange={(v) => set("jobType", v)} options={[...JOB_TYPES]} />
-            <SelectField label="Annual Income" id="income" value={form.income} onChange={(v) => set("income", v)} options={[...INCOME_RANGES]} />
-            <SelectField label="Work City" id="workCity" value={form.workCity} onChange={(v) => set("workCity", v)} options={CITIES.map((c) => c.name)} />
+            <SearchableSelect
+              label="Education"
+              name="education"
+              value={form.education}
+              options={educationOptions}
+              onChange={(v) => setField("education", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Degree"
+              name="degree"
+              value={form.degree}
+              options={degreeOptions}
+              onChange={(v) => setField("degree", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Occupation"
+              name="occupation"
+              value={form.occupation}
+              options={occupationOptions}
+              onChange={(v) => setField("occupation", v)}
+              placeholder="Select"
+            />
+            <FormInput
+              label="Company"
+              name="company"
+              value={form.company}
+              onChange={handleChange}
+            />
+            <SearchableSelect
+              label="Job Type"
+              name="jobType"
+              value={form.jobType}
+              options={jobTypeOptions}
+              onChange={(v) => setField("jobType", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Annual Income"
+              name="income"
+              value={form.income}
+              options={incomeOptions}
+              onChange={(v) => setField("income", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Work City"
+              name="workCity"
+              value={form.workCity}
+              options={cityOptions}
+              onChange={(v) => setField("workCity", v)}
+              placeholder="Select"
+              searchPlaceholder="Search city..."
+              emptyMessage="No city found"
+            />
           </div>
         )}
 
         {step === 3 && (
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Height" htmlFor="height">
-              <input id="height" className="field" value={form.height} onChange={(e) => set("height", e.target.value)} placeholder={`5'6"`} />
-            </FormField>
-            <SelectField label="Marital Status" id="maritalStatus" value={form.maritalStatus} onChange={(v) => set("maritalStatus", v)} options={[...MARITAL_STATUSES]} />
-            <SelectField label="Mother Tongue" id="motherTongue" value={form.motherTongue} onChange={(v) => set("motherTongue", v)} options={[...MOTHER_TONGUES]} />
-            <SelectField label="Lifestyle" id="lifestyle" value={form.lifestyle} onChange={(v) => set("lifestyle", v)} options={["Traditional", "Modern Traditional", "Modern"]} />
-            <SelectField label="Family Type" id="familyType" value={form.familyType} onChange={(v) => set("familyType", v)} options={["Joint", "Nuclear"]} />
-            <SelectField label="Family Status" id="familyStatus" value={form.familyStatus} onChange={(v) => set("familyStatus", v)} options={["Middle Class", "Upper Middle Class", "Rich"]} />
+            <FormInput
+              label="Height"
+              name="height"
+              value={form.height}
+              onChange={handleChange}
+              placeholder={`5'6"`}
+            />
+            <SearchableSelect
+              label="Marital Status"
+              name="maritalStatus"
+              value={form.maritalStatus}
+              options={maritalStatusOptions}
+              onChange={(v) => setField("maritalStatus", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Mother Tongue"
+              name="motherTongue"
+              value={form.motherTongue}
+              options={motherTongueOptions}
+              onChange={(v) => setField("motherTongue", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Lifestyle"
+              name="lifestyle"
+              value={form.lifestyle}
+              options={lifestyleOptions}
+              onChange={(v) => setField("lifestyle", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Family Type"
+              name="familyType"
+              value={form.familyType}
+              options={familyTypeOptions}
+              onChange={(v) => setField("familyType", v)}
+              placeholder="Select"
+            />
+            <SearchableSelect
+              label="Family Status"
+              name="familyStatus"
+              value={form.familyStatus}
+              options={familyStatusOptions}
+              onChange={(v) => setField("familyStatus", v)}
+              placeholder="Select"
+            />
           </div>
         )}
 
@@ -211,12 +371,20 @@ export default function RegisterPage() {
               const url = URL.createObjectURL(file);
               setImages((prev) => [
                 ...prev,
-                { id: String(Date.now()), url, primary: prev.length === 0 },
+                {
+                  id: String(Date.now()),
+                  url,
+                  primary: prev.length === 0,
+                },
               ]);
             }}
-            onRemove={(id) => setImages((prev) => prev.filter((img) => img.id !== id))}
+            onRemove={(id) =>
+              setImages((prev) => prev.filter((img) => img.id !== id))
+            }
             onSetPrimary={(id) =>
-              setImages((prev) => prev.map((img) => ({ ...img, primary: img.id === id })))
+              setImages((prev) =>
+                prev.map((img) => ({ ...img, primary: img.id === id })),
+              )
             }
           />
         )}
@@ -227,14 +395,74 @@ export default function RegisterPage() {
               What type of partner are you looking for?
             </p>
             <div className="grid gap-4 md:grid-cols-2">
-              <SelectField label="Age From" id="prefAgeFrom" value={form.prefAgeFrom} onChange={(v) => set("prefAgeFrom", v)} options={Array.from({ length: 30 }, (_, i) => String(i + 18))} />
-              <SelectField label="Age To" id="prefAgeTo" value={form.prefAgeTo} onChange={(v) => set("prefAgeTo", v)} options={Array.from({ length: 30 }, (_, i) => String(i + 18))} />
-              <SelectField label="City" id="prefCity" value={form.prefCity} onChange={(v) => set("prefCity", v)} options={CITIES.map((c) => c.name)} />
-              <SelectField label="State" id="prefState" value={form.prefState} onChange={(v) => set("prefState", v)} options={[...STATES]} />
-              <SelectField label="Education" id="prefEducation" value={form.prefEducation} onChange={(v) => set("prefEducation", v)} options={[...EDUCATION_LEVELS]} />
-              <SelectField label="Occupation" id="prefOccupation" value={form.prefOccupation} onChange={(v) => set("prefOccupation", v)} options={OCCUPATIONS} />
-              <SelectField label="Marital Status" id="prefMaritalStatus" value={form.prefMaritalStatus} onChange={(v) => set("prefMaritalStatus", v)} options={[...MARITAL_STATUSES]} />
-              <SelectField label="Surname" id="prefSurname" value={form.prefSurname} onChange={(v) => set("prefSurname", v)} options={[...SURNAMES]} />
+              <SearchableSelect
+                label="Age From"
+                name="prefAgeFrom"
+                value={form.prefAgeFrom}
+                options={ageOptions}
+                onChange={(v) => setField("prefAgeFrom", v)}
+                placeholder="Select"
+              />
+              <SearchableSelect
+                label="Age To"
+                name="prefAgeTo"
+                value={form.prefAgeTo}
+                options={ageOptions}
+                onChange={(v) => setField("prefAgeTo", v)}
+                placeholder="Select"
+              />
+              <SearchableSelect
+                label="City"
+                name="prefCity"
+                value={form.prefCity}
+                options={cityOptions}
+                onChange={(v) => setField("prefCity", v)}
+                placeholder="Select city"
+                searchPlaceholder="Search city..."
+                emptyMessage="No city found"
+              />
+              <SearchableSelect
+                label="State"
+                name="prefState"
+                value={form.prefState}
+                options={stateOptions}
+                onChange={(v) => setField("prefState", v)}
+                placeholder="Select state"
+                searchPlaceholder="Search state..."
+                emptyMessage="No state found"
+              />
+              <SearchableSelect
+                label="Education"
+                name="prefEducation"
+                value={form.prefEducation}
+                options={educationOptions}
+                onChange={(v) => setField("prefEducation", v)}
+                placeholder="Select"
+              />
+              <SearchableSelect
+                label="Occupation"
+                name="prefOccupation"
+                value={form.prefOccupation}
+                options={occupationOptions}
+                onChange={(v) => setField("prefOccupation", v)}
+                placeholder="Select"
+              />
+              <SearchableSelect
+                label="Marital Status"
+                name="prefMaritalStatus"
+                value={form.prefMaritalStatus}
+                options={maritalStatusOptions}
+                onChange={(v) => setField("prefMaritalStatus", v)}
+                placeholder="Select"
+              />
+              <SearchableSelect
+                label="Surname"
+                name="prefSurname"
+                value={form.prefSurname}
+                options={surnameOptions}
+                onChange={(v) => setField("prefSurname", v)}
+                placeholder="Select"
+              />
             </div>
             {occupationHint ? (
               <div className="rounded-2xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-sm font-medium text-secondary">
@@ -245,15 +473,24 @@ export default function RegisterPage() {
         )}
 
         <div className="mt-8 flex flex-wrap justify-between gap-3">
-          <button type="button" className="btn-ghost" onClick={back} disabled={step === 0}>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={back}
+            disabled={step === 0}
+          >
             Back
           </button>
-          {step < steps.length - 1 ? (
+          {step < REGISTER_STEPS.length - 1 ? (
             <button type="button" className="btn-primary" onClick={next}>
               Continue
             </button>
           ) : (
-            <button type="button" className="btn-primary" onClick={() => setDone(true)}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setDone(true)}
+            >
               Finish Registration
             </button>
           )}

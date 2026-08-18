@@ -1,5 +1,8 @@
+"use client";
+
 import { FormField } from "@/components/forms/FormField";
 
+/** Native select field used across filters/admin. Prefer SearchableSelect for searchable UX. */
 export function SelectField({
   label,
   id,
@@ -8,6 +11,7 @@ export function SelectField({
   options,
   placeholder = "Select",
   error,
+  disabled = false,
 }: {
   label: string;
   id: string;
@@ -16,6 +20,7 @@ export function SelectField({
   options: readonly string[] | string[];
   placeholder?: string;
   error?: string;
+  disabled?: boolean;
 }) {
   return (
     <FormField label={label} htmlFor={id} error={error}>
@@ -23,6 +28,7 @@ export function SelectField({
         id={id}
         className="field"
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">{placeholder}</option>
